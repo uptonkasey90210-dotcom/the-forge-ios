@@ -28,13 +28,8 @@ workflows:
         script: keychain initialize
       - name: Set up code signing settings
         script: |
-          # --- KEY REPAIR SCRIPT ---
-          # 1. Strip headers and spaces to get just the raw code
-          KEY_BODY=$(echo "$APP_STORE_CONNECT_PRIVATE_KEY" | sed 's/-----BEGIN PRIVATE KEY-----//g' | sed 's/-----END PRIVATE KEY-----//g' | tr -d ' ')
-          
-          echo "-----BEGIN PRIVATE KEY-----" > /tmp/apikey.p8
-          echo "$KEY_BODY" >> /tmp/apikey.p8
-          echo "-----END PRIVATE KEY-----" >> /tmp/apikey.p8
+          # DECODE THE BASE64 KEY BACK TO A FILE
+          echo "$APP_STORE_CONNECT_PRIVATE_KEY" | base64 --decode > /tmp/apikey.p8
 
           app-store-connect fetch-signing-files "$APP_ID" \
             --type IOS_APP_STORE \
