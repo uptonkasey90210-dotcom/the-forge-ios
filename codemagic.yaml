@@ -26,23 +26,35 @@ workflows:
         script: npx cap sync ios
       - name: Initialize Keychain
         script: keychain initialize
-      - name: Reconstruct Private Key
+        
+      # --- NEW LOGIC: Use Python for safe decoding ---
+      - name: Decode Key (Python Method)
         script: |
-          # 1. Decode the Base64 variable to a temporary file
-          echo "$IOS_AUTH_KEY" | base64 -D > /tmp/temp_decode.p8
+          python3 -c "
+          import os
+          import base64
           
-          # 2. Extract ONLY the raw secret key code (remove headers, footers, spaces, newlines)
-          # We use 'grep -v' to remove the BEGIN/END lines, and 'tr' to delete formatting
-          RAW_SECRET=$(cat /tmp/temp_decode.p8 | grep -v "PRIVATE KEY" | tr -d '\r\n ')
-          
-          # 3. Rebuild the file from scratch with perfect Apple formatting (64-char width)
-          echo "-----BEGIN PRIVATE KEY-----" > /tmp/apikey.p8
-          echo "$RAW_SECRET" | fold -w 64 >> /tmp/apikey.p8
-          echo "-----END PRIVATE KEY-----" >> /tmp/apikey.p8
-          
-          # 4. Verify the file looks correct in the logs (for safety)
-          echo "✅ Key Reconstructed. First line:"
-          head -n 1 /tmp/apikey.p8
+          try:
+              # 1. Get the raw Base64 string
+              b64_str = os.environ.get('IOS_AUTH_KEY', '')
+              
+              # 2. Decode it safely to bytes
+              key_bytes = base64.b64decode(b64_str)
+              
+              # 3. Force-convert Windows newlines (CRLF) to Mac newlines (LF)
+              # This fixes the 'Invalid PEM' error by normalizing the binary data
+              clean_bytes = key_bytes.replace(b'\r\n', b'\n')
+              
+              # 4. Write pure bytes to file (Bypassing shell formatting)
+              with open('/tmp/apikey.p8', 'wb') as f:
+                  f.write(clean_bytes)
+                  
+              print('✅ Key successfully decoded and sanitized.')
+          except Exception as e:
+              print(f'❌ Error: {e}')
+              exit(1)
+          "
+      # -----------------------------------------------
 
       - name: Set up code signing settings
         script: |
