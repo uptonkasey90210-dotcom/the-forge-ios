@@ -26,11 +26,21 @@ workflows:
         script: npx cap sync ios
       - name: Initialize Keychain
         script: keychain initialize
+      - name: Decode Key (Mac Safe Mode)
+        script: |
+          # Use -D for macOS decoding and write to a temporary file
+          echo "$IOS_AUTH_KEY" | base64 -D > /tmp/apikey.p8
+          
+          # Verify the file looks correct (First line should be -----BEGIN...)
+          if grep -q "BEGIN PRIVATE KEY" /tmp/apikey.p8; then
+            echo "✅ Key decoded successfully!"
+          else
+            echo "❌ Key decode failed. Trying Linux mode..."
+            echo "$IOS_AUTH_KEY" | base64 --decode > /tmp/apikey.p8
+          fi
+
       - name: Set up code signing settings
         script: |
-          # DECODE THE BASE64 KEY BACK TO A FILE
-          echo "$APP_STORE_CONNECT_PRIVATE_KEY" | base64 --decode > /tmp/apikey.p8
-
           app-store-connect fetch-signing-files "$APP_ID" \
             --type IOS_APP_STORE \
             --create \
@@ -47,7 +57,8 @@ workflows:
           --config Release
     publishing:
       app_store_connect:
-        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+        # We point to the file path now, as the variable contains Base64 (which Apple can't read directly)
+        api_key: @/tmp/apikey.p8
         key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
         issuer_id: $APP_STORE_CONNECT_ISSUER_ID
         submit_to_testflight: true
