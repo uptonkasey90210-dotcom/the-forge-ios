@@ -27,11 +27,21 @@ workflows:
       - name: Initialize Keychain
         script: keychain initialize
       - name: Set up code signing settings
-        script: app-store-connect fetch-signing-files "$APP_ID" --type IOS_APP_STORE --create --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" --private-key "$APP_STORE_CONNECT_PRIVATE_KEY"
+        script: >-
+          app-store-connect fetch-signing-files "$APP_ID"
+          --type IOS_APP_STORE
+          --create
+          --issuer-id "$APP_STORE_CONNECT_ISSUER_ID"
+          --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER"
+          --private-key "$APP_STORE_CONNECT_PRIVATE_KEY"
       - name: Add certs to keychain
         script: keychain add-certificates
       - name: Build IPA
-        script: xcode-project build-ipa --workspace "ios/App/App.xcworkspace" --scheme "App" --config Release
+        script: >-
+          xcode-project build-ipa
+          --workspace "ios/App/App.xcworkspace"
+          --scheme "App"
+          --config Release
     publishing:
       app_store_connect:
         api_key: $APP_STORE_CONNECT_PRIVATE_KEY
