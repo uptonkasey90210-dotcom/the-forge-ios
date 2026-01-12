@@ -58,7 +58,7 @@ workflows:
     publishing:
       app_store_connect:
         # We point to the file path now, as the variable contains Base64 (which Apple can't read directly)
-        api_key: @/tmp/apikey.p8
+        api_key: "@/tmp/apikey.p8"
         key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
         issuer_id: $APP_STORE_CONNECT_ISSUER_ID
         submit_to_testflight: true
