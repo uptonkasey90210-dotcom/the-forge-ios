@@ -27,7 +27,7 @@ workflows:
       - name: Initialize Keychain
         script: keychain initialize
         
-      # --- NEW LOGIC: Force-Reformat Key ---
+      # --- KEY RECONSTRUCTION (Use this to create the clean file) ---
       - name: Reconstruct Key (Python)
         script: |
           python3 -c "
@@ -35,37 +35,30 @@ workflows:
           import base64
 
           try:
-              # 1. Get the Base64 string from the environment
+              # 1. Get Base64 string
               b64_input = os.environ.get('IOS_AUTH_KEY', '').strip()
               
-              # 2. Decode it to text
+              # 2. Decode & Clean
               decoded_str = base64.b64decode(b64_input).decode('utf-8')
-              
-              # 3. CLEANING: Remove existing headers, footers, and ALL whitespace/newlines
-              # This gives us just the raw key data, ensuring no 'Windows' characters survive
-              raw_body = decoded_str.replace('-----BEGIN PRIVATE KEY-----', '')
-              raw_body = raw_body.replace('-----END PRIVATE KEY-----', '')
+              raw_body = decoded_str.replace('-----BEGIN PRIVATE KEY-----', '').replace('-----END PRIVATE KEY-----', '')
               raw_body = ''.join(raw_body.split()) 
 
-              # 4. REBUILDING: Create a perfect PEM structure
-              # Header + Key split into 64-char lines + Footer
+              # 3. Reformat to 64-char lines
               final_key = '-----BEGIN PRIVATE KEY-----\n'
               for i in range(0, len(raw_body), 64):
                   final_key += raw_body[i:i+64] + '\n'
               final_key += '-----END PRIVATE KEY-----\n'
 
-              # 5. Write to file
+              # 4. Save
               with open('/tmp/apikey.p8', 'w') as f:
                   f.write(final_key)
-                  
-              print('✅ Key reconstructed with perfect formatting.')
-              
+              print('✅ Key ready.')
           except Exception as e:
               print(f'❌ Error: {e}')
               exit(1)
           "
-      # -------------------------------------
 
+      # --- THE FIX: USE $(cat ...) TO READ THE FILE ---
       - name: Set up code signing settings
         script: |
           app-store-connect fetch-signing-files "$APP_ID" \
@@ -73,7 +66,8 @@ workflows:
             --create \
             --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
             --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
-            --private-key "@/tmp/apikey.p8"
+            --private-key "$(cat /tmp/apikey.p8)"
+      
       - name: Add certs to keychain
         script: keychain add-certificates
       - name: Build IPA
@@ -84,7 +78,8 @@ workflows:
           --config Release
     publishing:
       app_store_connect:
-        api_key: "@/tmp/apikey.p8"
+        # Use the same cat trick here for publishing
+        api_key: $(cat /tmp/apikey.p8)
         key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
         issuer_id: $APP_STORE_CONNECT_ISSUER_ID
         submit_to_testflight: true
