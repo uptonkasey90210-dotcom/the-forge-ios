@@ -26,6 +26,15 @@ workflows:
         script: npx cap sync ios
       - name: Initialize Keychain
         script: keychain initialize
+        
+      # --- DEBUG STEP STARTS HERE ---
+      - name: Debug Check
+        script: |
+          echo "Key Identifier: $APP_STORE_CONNECT_KEY_IDENTIFIER"
+          echo "Issuer ID: $APP_STORE_CONNECT_ISSUER_ID"
+          echo "Private Key Length: ${#APP_STORE_CONNECT_PRIVATE_KEY}"
+      # --- DEBUG STEP ENDS HERE ---
+
       - name: Set up code signing settings
         script: >-
           app-store-connect fetch-signing-files "$APP_ID"
