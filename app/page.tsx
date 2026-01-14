@@ -18,8 +18,11 @@ import {
   Database,
   Trash2,
   Plus,
-  Pencil
+  Pencil,
+  Info
 } from "lucide-react"
+import { ConnectionGuide } from "@/components/connection-guide"
+import { Button } from "@/components/ui/button"
 
 // --- TYPE DEFINITIONS ---
 interface Scene {
@@ -153,6 +156,7 @@ export default function TheForge() {
 
   // Logic / Backend Bridge
   const [isScanning, setIsScanning] = useState(false)
+  const [showGuide, setShowGuide] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const chatLogInputRef = useRef<HTMLInputElement>(null)
   const characterImportRef = useRef<HTMLInputElement>(null)
@@ -168,6 +172,14 @@ export default function TheForge() {
       } catch (error) {
         console.error("Failed to load project data:", error)
       }
+    }
+  }, [])
+
+  // --- CONNECTION GUIDE ---
+  useEffect(() => {
+    if (!localStorage.getItem("hasSeenGuide")) {
+      setShowGuide(true)
+      localStorage.setItem("hasSeenGuide", "true")
     }
   }, [])
 
@@ -968,11 +980,11 @@ export default function TheForge() {
                                 className="w-full h-full object-cover opacity-60"
                             />
                         ) : (
-                            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-zinc-800 to-zinc-900">
+                            <div className="absolute inset-0 flex items-center justify-center bg-linear-to-br from-zinc-800 to-zinc-900">
                                 <Scan className="w-8 h-8 text-zinc-700" />
                             </div>
                         )}
-                        <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 to-transparent" />
+                        <div className="absolute inset-0 bg-linear-to-t from-zinc-900 to-transparent" />
                         {/* Scene Number Badge */}
                         <div className="absolute top-2 left-2 px-2 py-1 bg-black/60 backdrop-blur-sm border border-amber-500/30 rounded">
                             <span className="font-mono text-xs text-amber-500 font-bold">SCENE {scene.id}</span>
@@ -998,7 +1010,7 @@ export default function TheForge() {
                                 {scene.mood}
                             </span>
                             {scene.characters.slice(0, 2).map((char, i) => (
-                                <span key={i} className="px-2 py-0.5 bg-amber-500/20 text-amber-400 text-[10px] font-mono border border-amber-500/30 rounded truncate max-w-[100px]">
+                                <span key={i} className="px-2 py-0.5 bg-amber-500/20 text-amber-400 text-[10px] font-mono border border-amber-500/30 rounded truncate max-w-25">
                                     {char}
                                 </span>
                             ))}
@@ -1031,7 +1043,7 @@ export default function TheForge() {
             {projectData.cast.map(member => (
                 <div key={member.id} className="group relative bg-zinc-900 border border-white/10 hover:border-cyan-500/50 transition-all duration-300">
                     <div className="h-48 bg-zinc-950 relative overflow-hidden">
-                        <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 to-transparent z-10" />
+                        <div className="absolute inset-0 bg-linear-to-t from-zinc-900 to-transparent z-10" />
                         {member.avatarUrl ? (
                           <img src={member.avatarUrl} alt={member.name} className="absolute inset-0 w-full h-full object-cover" />
                         ) : (
@@ -1133,7 +1145,7 @@ export default function TheForge() {
         <article className="border-2 border-amber-500/60 bg-black/40 backdrop-blur-xl overflow-hidden">
             <div className="flex flex-col lg:flex-row">
             <div className="lg:w-96 aspect-video lg:aspect-auto lg:h-auto bg-zinc-900 border-b lg:border-b-0 lg:border-r border-white/10 flex items-center justify-center relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-amber-500/5" />
+                <div className="absolute inset-0 bg-linear-to-br from-cyan-500/5 to-amber-500/5" />
                 {currentImage ? (
                   <img src={currentImage} alt="Generated Scene" className="w-full h-full object-cover" />
                 ) : (
@@ -1182,17 +1194,17 @@ export default function TheForge() {
                 </span>
                 </div>
                 <div className="flex gap-3">
-                <button onClick={handleTextRegeneration} className="flex-1 py-3 px-4 bg-purple-600/80 hover:bg-purple-500 text-white font-mono uppercase tracking-wider text-sm flex items-center justify-center gap-2 transition-colors min-h-[44px] border border-purple-500/50">
+                <button onClick={handleTextRegeneration} className="flex-1 py-3 px-4 bg-purple-600/80 hover:bg-purple-500 text-white font-mono uppercase tracking-wider text-sm flex items-center justify-center gap-2 transition-colors min-h-11 border border-purple-500/50">
                     <RefreshCw className="w-4 h-4" />
                     Rewrite (Story Engine)
                 </button>
-                <button onClick={generateSceneImage} className="flex-1 py-3 px-4 bg-red-600/80 hover:bg-red-500 text-white font-mono uppercase tracking-wider text-sm flex items-center justify-center gap-2 transition-colors min-h-[44px] border border-red-500/50">
+                <button onClick={generateSceneImage} className="flex-1 py-3 px-4 bg-red-600/80 hover:bg-red-500 text-white font-mono uppercase tracking-wider text-sm flex items-center justify-center gap-2 transition-colors min-h-11 border border-red-500/50">
                     <RefreshCw className="w-4 h-4" />
                     Regenerate (Variant B)
                 </button>
                 <button
                     onClick={handleApprove}
-                    className="flex-1 py-3 px-4 bg-emerald-600/80 hover:bg-emerald-500 text-white font-mono uppercase tracking-wider text-sm flex items-center justify-center gap-2 transition-colors min-h-[44px] border border-emerald-500/50"
+                    className="flex-1 py-3 px-4 bg-emerald-600/80 hover:bg-emerald-500 text-white font-mono uppercase tracking-wider text-sm flex items-center justify-center gap-2 transition-colors min-h-11 border border-emerald-500/50"
                 >
                     <Check className="w-4 h-4" />
                     Approve & Next
@@ -1204,7 +1216,7 @@ export default function TheForge() {
         </div>
         <article className="mb-4 border-2 border-amber-400 bg-amber-500/10 backdrop-blur-xl p-4">
         <div className="flex items-start gap-4">
-            <div className="w-10 h-10 flex-shrink-0 bg-amber-500 flex items-center justify-center">
+            <div className="w-10 h-10 shrink-0 bg-amber-500 flex items-center justify-center">
             <AlertTriangle className="w-5 h-5 text-black" />
             </div>
             <div className="flex-1">
@@ -1218,9 +1230,9 @@ export default function TheForge() {
                 value={contextInput}
                 onChange={(e) => setContextInput(e.target.value)}
                 placeholder="Clarify the location..."
-                className="flex-1 px-4 py-2 bg-black/60 border border-amber-500/50 text-white placeholder:text-amber-500/40 focus:outline-none focus:border-amber-400 font-mono text-sm min-h-[44px]"
+                className="flex-1 px-4 py-2 bg-black/60 border border-amber-500/50 text-white placeholder:text-amber-500/40 focus:outline-none focus:border-amber-400 font-mono text-sm min-h-11"
                 />
-                <button onClick={injectContext} className="px-6 py-2 bg-amber-500 text-black font-mono uppercase tracking-wide text-sm hover:bg-amber-400 transition-colors min-h-[44px]">
+                <button onClick={injectContext} className="px-6 py-2 bg-amber-500 text-black font-mono uppercase tracking-wide text-sm hover:bg-amber-400 transition-colors min-h-11">
                 Inject
                 </button>
             </div>
@@ -1258,7 +1270,12 @@ export default function TheForge() {
           </div>
           {/* Connection Status Card */}
           <div className="bg-zinc-900 border border-white/10 p-6 rounded-lg">
-             <h3 className="font-serif text-amber-500 text-lg mb-4">Neural Bridges</h3>
+             <div className="flex items-center gap-2 mb-4">
+               <h3 className="font-serif text-amber-500 text-lg">Neural Bridges</h3>
+               <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setShowGuide(true)}>
+                 <Info className="h-4 w-4" />
+               </Button>
+             </div>
              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                    <label className="text-xs font-mono uppercase text-zinc-500">Ollama Endpoint (LLM & Vision)</label>
@@ -1388,9 +1405,9 @@ export default function TheForge() {
       />
 
       {/* Sidebar */}
-      <aside className="w-16 lg:w-20 flex-shrink-0 border-r border-white/10 bg-black/40 backdrop-blur-xl flex flex-col">
+      <aside className="w-16 lg:w-20 shrink-0 border-r border-white/10 bg-black/40 backdrop-blur-xl flex flex-col">
         <div className="p-4 border-b border-white/10 flex items-center justify-center">
-          <div className="w-8 h-8 bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center">
+          <div className="w-8 h-8 bg-linear-to-br from-amber-500 to-amber-600 flex items-center justify-center">
             <span className="font-serif font-bold text-black text-sm">F</span>
           </div>
         </div>
@@ -1429,7 +1446,7 @@ export default function TheForge() {
       </aside>
 
       {/* Column B: Identity Engine */}
-      <aside className="w-72 lg:w-80 flex-shrink-0 border-r border-white/10 bg-black/40 backdrop-blur-xl flex flex-col">
+      <aside className="w-72 lg:w-80 shrink-0 border-r border-white/10 bg-black/40 backdrop-blur-xl flex flex-col">
         <div className="p-4 border-b border-white/10">
           <h2 className="font-serif text-lg text-amber-500">Cast & Consistency</h2>
         </div>
@@ -1486,7 +1503,7 @@ export default function TheForge() {
                   member.locked ? "border-amber-500/40" : "border-white/10"
                 }`}
               >
-                <div className="w-10 h-10 bg-zinc-800 border border-white/10 flex items-center justify-center flex-shrink-0">
+                <div className="w-10 h-10 bg-zinc-800 border border-white/10 flex items-center justify-center shrink-0">
                   <Users className="w-4 h-4 text-zinc-600" />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -1556,7 +1573,7 @@ export default function TheForge() {
             <div className="flex flex-col lg:flex-row">
               <div className="lg:w-80 p-6 border-b lg:border-b-0 lg:border-r border-white/10 flex flex-col items-center justify-center bg-black/40">
                 <div className="relative w-48 h-48 bg-zinc-900 border-2 border-cyan-500/40 overflow-hidden">
-                  <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-cyan-500/10 to-amber-500/10">
+                  <div className="absolute inset-0 flex items-center justify-center bg-linear-to-br from-cyan-500/10 to-amber-500/10">
                     <Users className="w-16 h-16 text-zinc-700" />
                   </div>
                   <div className="absolute inset-0 pointer-events-none">
@@ -1569,7 +1586,7 @@ export default function TheForge() {
                       ))}
                       <ellipse cx="50" cy="45" rx="25" ry="32" fill="none" stroke="rgba(34,211,238,0.5)" strokeWidth="1" strokeDasharray="3,2" />
                     </svg>
-                    <div className="absolute inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-cyan-400 to-transparent animate-pulse" style={{ top: "30%" }} />
+                    <div className="absolute inset-x-0 h-0.5 bg-linear-to-r from-transparent via-cyan-400 to-transparent animate-pulse" style={{ top: "30%" }} />
                   </div>
                   <div className="mt-4 text-center">
                     <div className="px-3 py-1.5 bg-cyan-500/20 border border-cyan-500/40 inline-block mb-2">
@@ -1590,7 +1607,7 @@ export default function TheForge() {
                     type="text"
                     value={characterForm.name}
                     onChange={(e) => setCharacterForm({ ...characterForm, name: e.target.value })}
-                    className="w-full px-4 py-3 bg-black/60 border border-white/20 text-white placeholder:text-zinc-600 focus:outline-none focus:border-amber-500/60 font-serif text-lg min-h-[44px]"
+                    className="w-full px-4 py-3 bg-black/60 border border-white/20 text-white placeholder:text-zinc-600 focus:outline-none focus:border-amber-500/60 font-serif text-lg min-h-11"
                   />
                 </div>
                 <div>
@@ -1601,7 +1618,7 @@ export default function TheForge() {
                     <button
                       type="button"
                       onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
-                      className="w-full px-4 py-3 bg-black/60 border border-white/20 text-left flex items-center justify-between focus:outline-none focus:border-amber-500/60 min-h-[44px]"
+                      className="w-full px-4 py-3 bg-black/60 border border-white/20 text-left flex items-center justify-between focus:outline-none focus:border-amber-500/60 min-h-11"
                     >
                       <span className="font-mono text-amber-400">{characterForm.role}</span>
                       <ChevronDown
@@ -1618,7 +1635,7 @@ export default function TheForge() {
                               setCharacterForm({ ...characterForm, role })
                               setRoleDropdownOpen(false)
                             }}
-                            className={`w-full px-4 py-3 text-left font-mono hover:bg-white/10 transition-colors min-h-[44px] ${
+                            className={`w-full px-4 py-3 text-left font-mono hover:bg-white/10 transition-colors min-h-11 ${
                               characterForm.role === role ? "text-amber-400 bg-amber-500/10" : "text-zinc-300"
                             }`}
                           >
@@ -1646,7 +1663,7 @@ export default function TheForge() {
             <div className="flex items-center justify-end gap-3 p-4 border-t border-white/10 bg-black/60">
               <button
                 onClick={() => setIsCharacterModalOpen(false)}
-                className="px-6 py-3 border border-white/20 text-zinc-400 hover:text-white hover:border-white/40 font-mono uppercase tracking-wider text-sm transition-colors min-h-[44px]"
+                className="px-6 py-3 border border-white/20 text-zinc-400 hover:text-white hover:border-white/40 font-mono uppercase tracking-wider text-sm transition-colors min-h-11"
               >
                 Cancel
               </button>
@@ -1666,7 +1683,7 @@ export default function TheForge() {
                   setIsCharacterModalOpen(false)
                   alert('Character Saved')
                 }}
-                className="px-8 py-3 bg-cyan-500 hover:bg-cyan-400 text-black font-mono uppercase tracking-wider text-sm transition-colors min-h-[44px] shadow-[0_0_20px_rgba(34,211,238,0.4)] flex items-center gap-2"
+                className="px-8 py-3 bg-cyan-500 hover:bg-cyan-400 text-black font-mono uppercase tracking-wider text-sm transition-colors min-h-11 shadow-[0_0_20px_rgba(34,211,238,0.4)] flex items-center gap-2"
               >
                 <Check className="w-4 h-4" />
                 Lock Identity
@@ -1716,12 +1733,12 @@ export default function TheForge() {
                     value={loraForm.modelName}
                     onChange={(e) => setLoraForm({ ...loraForm, modelName: e.target.value })}
                     placeholder="e.g., lando_v1, character_style_v2"
-                    className="flex-1 px-4 py-2 bg-black/60 border border-white/20 text-white placeholder:text-zinc-600 focus:outline-none focus:border-violet-500/60 font-mono text-sm min-h-[44px]"
+                    className="flex-1 px-4 py-2 bg-black/60 border border-white/20 text-white placeholder:text-zinc-600 focus:outline-none focus:border-violet-500/60 font-mono text-sm min-h-11"
                   />
                   <button
                     type="button"
                     onClick={() => loraFileInputRef.current?.click()}
-                    className="px-4 py-2 bg-violet-600/80 hover:bg-violet-500 border border-violet-500/50 text-white font-mono uppercase tracking-wider text-xs transition-colors min-h-[44px] whitespace-nowrap"
+                    className="px-4 py-2 bg-violet-600/80 hover:bg-violet-500 border border-violet-500/50 text-white font-mono uppercase tracking-wider text-xs transition-colors min-h-11 whitespace-nowrap"
                   >
                     Browse
                   </button>
@@ -1758,7 +1775,7 @@ export default function TheForge() {
                   value={loraForm.triggerWord}
                   onChange={(e) => setLoraForm({ ...loraForm, triggerWord: e.target.value })}
                   placeholder="e.g., landostyle, character_style"
-                  className="w-full px-4 py-2 bg-black/60 border border-white/20 text-white placeholder:text-zinc-600 focus:outline-none focus:border-violet-500/60 font-mono text-sm min-h-[44px]"
+                  className="w-full px-4 py-2 bg-black/60 border border-white/20 text-white placeholder:text-zinc-600 focus:outline-none focus:border-violet-500/60 font-mono text-sm min-h-11"
                 />
               </div>
             </div>
@@ -1766,13 +1783,13 @@ export default function TheForge() {
             <div className="flex items-center justify-end gap-3 p-4 border-t border-white/10 bg-black/60">
               <button
                 onClick={() => setEditingMember(null)}
-                className="px-6 py-3 border border-white/20 text-zinc-400 hover:text-white hover:border-white/40 font-mono uppercase tracking-wider text-sm transition-colors min-h-[44px]"
+                className="px-6 py-3 border border-white/20 text-zinc-400 hover:text-white hover:border-white/40 font-mono uppercase tracking-wider text-sm transition-colors min-h-11"
               >
                 Cancel
               </button>
               <button
                 onClick={saveLoraWeights}
-                className="px-8 py-3 bg-violet-600 hover:bg-violet-500 text-white font-mono uppercase tracking-wider text-sm transition-colors min-h-[44px] shadow-[0_0_20px_rgba(139,92,246,0.4)] flex items-center gap-2"
+                className="px-8 py-3 bg-violet-600 hover:bg-violet-500 text-white font-mono uppercase tracking-wider text-sm transition-colors min-h-11 shadow-[0_0_20px_rgba(139,92,246,0.4)] flex items-center gap-2"
               >
                 <Check className="w-4 h-4" />
                 Save Weights
@@ -1822,7 +1839,7 @@ export default function TheForge() {
                       className="w-full h-full object-cover" 
                     />
                   ) : (
-                    <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-amber-500/10 to-cyan-500/10">
+                    <div className="absolute inset-0 flex items-center justify-center bg-linear-to-br from-amber-500/10 to-cyan-500/10">
                       <Users className="w-16 h-16 text-zinc-700" />
                     </div>
                   )}
@@ -1842,7 +1859,7 @@ export default function TheForge() {
                     type="text"
                     value={characterDetailsForm.name}
                     onChange={(e) => setCharacterDetailsForm({ ...characterDetailsForm, name: e.target.value })}
-                    className="w-full px-4 py-3 bg-black/60 border border-white/20 text-white placeholder:text-zinc-600 focus:outline-none focus:border-amber-500/60 font-serif text-lg min-h-[44px]"
+                    className="w-full px-4 py-3 bg-black/60 border border-white/20 text-white placeholder:text-zinc-600 focus:outline-none focus:border-amber-500/60 font-serif text-lg min-h-11"
                   />
                 </div>
                 <div>
@@ -1853,7 +1870,7 @@ export default function TheForge() {
                     type="text"
                     value={characterDetailsForm.role}
                     onChange={(e) => setCharacterDetailsForm({ ...characterDetailsForm, role: e.target.value })}
-                    className="w-full px-4 py-3 bg-black/60 border border-white/20 text-white placeholder:text-zinc-600 focus:outline-none focus:border-amber-500/60 font-mono text-sm min-h-[44px]"
+                    className="w-full px-4 py-3 bg-black/60 border border-white/20 text-white placeholder:text-zinc-600 focus:outline-none focus:border-amber-500/60 font-mono text-sm min-h-11"
                     disabled
                   />
                   <p className="text-[10px] text-zinc-600 font-mono mt-1">Role cannot be changed after creation.</p>
@@ -1875,7 +1892,7 @@ export default function TheForge() {
             <div className="flex items-center justify-end gap-3 p-4 border-t border-white/10 bg-black/60">
               <button
                 onClick={() => setEditingCharacter(null)}
-                className="px-6 py-3 border border-white/20 text-zinc-400 hover:text-white hover:border-white/40 font-mono uppercase tracking-wider text-sm transition-colors min-h-[44px]"
+                className="px-6 py-3 border border-white/20 text-zinc-400 hover:text-white hover:border-white/40 font-mono uppercase tracking-wider text-sm transition-colors min-h-11"
               >
                 Cancel
               </button>
@@ -1894,7 +1911,7 @@ export default function TheForge() {
                   setEditingCharacter(null)
                   alert('✓ Character updated!')
                 }}
-                className="px-8 py-3 bg-amber-600 hover:bg-amber-500 text-white font-mono uppercase tracking-wider text-sm transition-colors min-h-[44px] shadow-[0_0_20px_rgba(245,158,11,0.4)] flex items-center gap-2"
+                className="px-8 py-3 bg-amber-600 hover:bg-amber-500 text-white font-mono uppercase tracking-wider text-sm transition-colors min-h-11 shadow-[0_0_20px_rgba(245,158,11,0.4)] flex items-center gap-2"
               >
                 <Check className="w-4 h-4" />
                 Save Changes
@@ -1903,6 +1920,7 @@ export default function TheForge() {
           </div>
         </div>
       )}
+      <ConnectionGuide open={showGuide} onOpenChange={setShowGuide} />
     </div>
   )
 }
